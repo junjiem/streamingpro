@@ -9,17 +9,23 @@
     <modules>
         <module>streamingpro-commons</module>
         <module>streamingpro-spark-common</module>
+        <module>streamingpro-manager</module>
+        <module>streamingpro-api</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scala.version>2.10.3</scala.version>
-        <scala.binary.version>2.10</scala.binary.version>
-        <spark.version>1.6.1</spark.version>
+        <scala.version>2.11.8</scala.version>
+        <scala.binary.version>2.11</scala.binary.version>
+        <scala.jline.version>2.11.0-M3</scala.jline.version>
+
+        <spark.streaming.kafka.artifactId>spark-streaming-kafka-0-8_${scala.binary.version}
+        </spark.streaming.kafka.artifactId>
+        <spark.sql.kafka.artifactId>spark-sql-kafka-0-10_${scala.binary.version}</spark.sql.kafka.artifactId>
+        <spark.version>2.1.1</spark.version>
+
         <flink.version>1.2.0</flink.version>
-        <spark.sql.kafka.artifactId>spark-streaming-kafka_2.10</spark.sql.kafka.artifactId>
-        <streamingpro.version>0.4.7</streamingpro.version>
-        <spark.streaming.kafka.artifactId>spark-streaming-kafka_2.10</spark.streaming.kafka.artifactId>
+
         <serviceframework.version>1.3.2-SNAPSHOT</serviceframework.version>
         <scope>provided</scope>
     </properties>
@@ -50,6 +56,31 @@
                 <scala.binary.version>2.11</scala.binary.version>
                 <scala.jline.version>2.11.0-M3</scala.jline.version>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-versions</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <bannedDependencies>
+                                            <excludes combine.children="append">
+                                                <exclude>*:*_2.10</exclude>
+                                            </excludes>
+                                        </bannedDependencies>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>scala-2.10</id>
@@ -58,6 +89,32 @@
                 <scala.binary.version>2.10</scala.binary.version>
                 <scala.jline.version>2.10.3</scala.jline.version>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-versions</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <bannedDependencies>
+                                            <excludes combine.children="append">
+                                                <exclude>*:*_2.11</exclude>
+                                            </excludes>
+                                        </bannedDependencies>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
         </profile>
 
         <profile>
@@ -86,6 +143,26 @@
                 </spark.streaming.kafka.artifactId>
                 <spark.sql.kafka.artifactId>spark-sql-kafka-0-10_${scala.binary.version}</spark.sql.kafka.artifactId>
                 <spark.version>2.1.1</spark.version>
+            </properties>
+            <modules>
+                <module>streamingpro-spark-2.0</module>
+            </modules>
+            <dependencies>
+                <dependency>
+                    <groupId>net.csdn</groupId>
+                    <artifactId>serviceframework-jetty-9-server</artifactId>
+                    <version>${serviceframework.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>spark-2.2.0</id>
+            <properties>
+                <spark.streaming.kafka.artifactId>spark-streaming-kafka-0-8_${scala.binary.version}
+                </spark.streaming.kafka.artifactId>
+                <spark.sql.kafka.artifactId>spark-sql-kafka-0-10_${scala.binary.version}</spark.sql.kafka.artifactId>
+                <spark.version>2.2.0</spark.version>
             </properties>
             <modules>
                 <module>streamingpro-spark-2.0</module>
@@ -155,8 +232,14 @@
         </dependency>
 
         <dependency>
+            <groupId>org.kamranzafar</groupId>
+            <artifactId>jtar</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>net.liftweb</groupId>
-            <artifactId>lift-json_2.10</artifactId>
+            <artifactId>lift-json_${scala.binary.version}</artifactId>
             <version>2.6.2</version>
         </dependency>
 
@@ -362,15 +445,4 @@
 
         </plugins>
     </build>
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <name>releases</name>
-            <url>http://mvn.letv.com/nexus/content/repositories/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <url>http://mvn.letv.com/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
