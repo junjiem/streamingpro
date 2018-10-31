@@ -119,3 +119,14 @@ project/plugins/project/
 /metastore_db
 /streamingpro-manager/src/main/resources-online/jdbc.properties
 /streamingpro-manager/src/main/resources-local/jdbc.properties
+
+/streamingpro-dsl/gen
+/streamingpro-hbase/streamingpro-hbase.iml
+/tasks
+
+/jni
+/streamingpro-spark-2.0/src/main/resources-local/python/python_temp.pickle
+streamingpro-crawler/tasks/
+streamingpro-commons/logs
+streamingpro-dsl/logs/
+streamingpro-dsl-legacy/logs/

@@ -1,80 +1,243 @@
-StreamingPro is a fast, expressive, and convenient system running on Spark with streaming, batch, interactive query, and machine learning support.
+## What's StreamingPro and MLSQL?
 
-StreamingPro makes it easier to build spark applications without writing any code by means of:
+StreamingPro is mainly designed to run on Apache Spark but it also supports Apache Flink for the runtime.
+Thus, it can be considered as a cross,distributed platform which is the combination of BigData platform and AI platform 
+where you can run  both Big Data Processing and Machine Learning script.
 
-* Using json file in combination with modules, which are easy to be reused. This provides users declarative configurations to build spark applications.
-* Data processing is based on SQL.
-* Script support. 
+
+MLSQL is a DSL akin to SQL but more powerfull based on StreamingPro platform. Since StreamingPro have already 
+intergrated many ML frameworks including Spark MLLib, DL4J and Python ML framework eg. Sklearn, Tensorflow(supporting cluster mode)
+this means you can use MLSQL to operate all these popular Machine Learning frameworks.
+
+## Why MLSQL
+
+MLSQL give you the power to use just one SQL-like language to finish all your Machine Learning  pipeline.  It also provides so 
+many modules and functions to help you simplify the complexity of building Machine Learning application.
+  
+1. MLSQL is the only one language you should take over.
+2. Data preproccessing created in training phase can also be used in streaming, batch , API service directly without coding.
+3. Server mode make you get rid of environment trouble.      
+
+
+## Quick Tutorial
+
+Step 1:
+
+
+Download the jars from the release page: [Release页面](https://github.com/allwefantasy/streamingpro/releases):
+
+1. streamingpro-mlsql-1.x.x.jar
+2. ansj_seg-5.1.6.jar
+3. nlp-lang-1.7.8.jar
+
+Step 2:
+
+Visit the downloads page: [Spark](https://spark.apache.org/downloads.html), to download Apache Spark 2.2.0 and then unarvhive it.
  
-StreamingPro is not only an out-of-box complete application, but also an extensible and programmable framework for spark since you can develop you ower compositors(a.k.a moduler). 
+Step 3:
 
-## Features
+```shell
+cd spark-2.2.0-bin-hadoop2.7/
 
-* Pure Spark Streaming (or normal Spark) program
-* No need of coding, only declarative workflows
-* Rest API for interactive querying
-* SQL-Oriented workflows support
-* Data continuously streamed in & processed in near real-time
-* dynamically CURD of workflows at runtime via Rest API 
-* Flexible workflows (input, output, parsers, etc) 
-* High performance
-* Scalable
+./bin/spark-submit   --class streaming.core.StreamingApp \
+--master local[*] \
+--name sql-interactive \
+--jars ansj_seg-5.1.6.jar,nlp-lang-1.7.8.jar \
+streamingpro-mlsql-1.1.2.jar    \
+-streaming.name sql-interactive    \
+-streaming.job.file.path file:///tmp/query.json \
+-streaming.platform spark   \
+-streaming.rest true   \
+-streaming.driver.port 9003   \
+-streaming.spark.service true \
+-streaming.thrift false \
+-streaming.enableHiveSupport true
+```
 
-## Download
+`query.json` is a json file contains "{}".
+
+Step 4: 
+
+Open your chrome browser, type the following url:
 
 ```
-Download page: https://pan.baidu.com/s/1i4POWvV
+http://127.0.0.1:9003
 ```
 
-## Documents
+![](https://github.com/allwefantasy/mlsql-web/raw/master/images/WX20180629-105204@2x.png)
 
-More Chinese articles: http://www.jianshu.com/c/759bc22b9e15
-
-* [Three steps to run your first application](https://github.com/allwefantasy/streamingpro/wiki/Three-steps-to-run-your-first-application)
-* [How to build streamingpro](https://github.com/allwefantasy/streamingpro/wiki/Build)
-
-* [三步跑起你的第一个应用](https://github.com/allwefantasy/streamingpro/wiki/三步跑起你的第一个应用)
-* [利用StreamingPro实现SQL-交互式查询](https://github.com/allwefantasy/streamingpro/wiki/利用StreamingPro实现SQL-交互式查询)
-* [使用Spark SQL 构建流式处理程序](http://www.jianshu.com/p/d10edd6c7cf9)
-* [使用Spark SQL构建批处理程序](http://www.jianshu.com/p/7f6cb8eaadef)
-
-* [流式计算常见模块用法说明](http://www.jianshu.com/p/9c0d00498cb8)
-* [用线性回归无编码实现文章浏览数预测](http://www.jianshu.com/p/d053a21944f5)
-* [StreamingPro添加Scala script 模块支持](http://www.jianshu.com/p/b33c36cd3481)
-* [Properties](https://github.com/allwefantasy/streamingpro/wiki/Properties)
-
-* [Run your first application](docs/Run-your-first-application.md)
-* [Submit application](https://github.com/allwefantasy/streamingpro/wiki/Submit-application)
-* [dynamically CURD of workflows  at runtime via Rest API](https://github.com/allwefantasy/streamingpro/wiki/Dynamically-add-Job-via-Rest-API)
-* [Recovery](https://github.com/allwefantasy/streamingpro/wiki/Recovery)
-* [Useful modules introduction](https://github.com/allwefantasy/streamingpro/wiki/Common-compositors-introduction)
-* [Other runtime support](https://github.com/allwefantasy/streamingpro/wiki/Runtime-support)
+Enjoy.
 
 
-## Architecture
+---------------------------------------------------
+Run the first Machine Learning Script in MLSQL.
 
-![](https://github.com/allwefantasy/streamingpro/blob/master/images/Snip20160510_3.png)
-[If no picture is shown, please click me.](http://upload-images.jianshu.io/upload_images/1063603-383c19104e141031.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+```sql
+
+-- load data from spark distribution 
+load libsvm.`/spark-2.2.0-bin-hadoop2.7/data/mllib/sample_libsvm_data.txt` as data;
+
+-- train a NaiveBayes model and save it in /tmp/bayes_model.
+-- Here the alg we use  is based on Spark MLlib 
+train data as NaiveBayes.`/tmp/bayes_model`;
+
+-- register your model
+register NaiveBayes.`/tmp/bayes_model` as bayes_predict;
+
+-- predict all data 
+select bayes_predict(features) as predict_label, label  from data as result;
+
+-- save predicted result in /tmp/result with json format
+save overwrite result as json.`/tmp/result`;
+
+-- show predict label in web table.
+select * from result as res;
+```
+
+Please make sure the path `/spark-2.2.0-bin-hadoop2.7/data/mllib/sample_libsvm_data.txt` is correct.
+
+Copy and paste the script to the web page, and click `运行`, then you will see the label and predict_label.
+
+Congratulations, you have completed the first Machine Learning script!
+
+----------------------------------------------------
+
+Run the first ETL Script In MLSQL.
 
 
-[If github is too slow to view, please click me.](http://www.jianshu.com/p/3c19f8b9341c)
+```sql
+select "a" as a,"b" as b
+as abc;
+
+-- here we just copy all from table abc and then create a new table newabc.
+
+From Oscar:
+-- we just copy all from table abc and create a new table newabc here.
+
+select * from abc
+as newabc;
+
+-- save the newabc table to mysql.
+save overwrite newabc
+as jdbc.`db.abc`
+options truncate="true"
+and driver="com.mysql.jdbc.Driver"
+and url="jdbc:mysql://127.0.0.1:3306/...."
+and driver="com.mysql.jdbc.Driver"
+and user="..."
+and password="...."
+```
+
+Congratulations, you have completed the first ETL script!
+
+-------------------------------------------------------
 
 
-## Declarative workflows for building Spark Streaming  
+## Run as Application or Server
 
-![](https://github.com/allwefantasy/streamingpro/blob/master/images/Snip20160510_4.png)
-[If no picture is shown, please click me.](http://upload-images.jianshu.io/upload_images/1063603-968e744a1ef2e334.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+1. Application mode： Run StreamingPro as a application which executes a json file.
+2. Server mode：Run StreamingPro as a server and you can interactive with it with http protocol. 
 
-## Implementation
+We strongly recommend users to deploy StreamingPro with Server mode. Server mode is developed actively.
 
-![](https://github.com/allwefantasy/streamingpro/blob/master/images/Snip20160510_1.png)
-[If no picture is shown, please click me.](http://upload-images.jianshu.io/upload_images/1063603-26dd2d88611a8b93.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+In order to avoid compiling problems, please use [release version](https://github.com/allwefantasy/streamingpro/releases)
+directly.
 
-
-
-
-
+If you really want to use application mode, StreamingPro supports `batch.mlsql` keyword in json file, 
+so you can still use mlsql grammar.(This function provided from v1.1.2)
 
 
+```json
+{
+  "mlsql": {
+    "desc": "test",
+    "strategy": "spark",
+    "algorithm": [],
+    "ref": [],
+    "compositor": [
+      {
+        "name": "batch.mlsql",
+        "params": [
+          {
+            "sql": [
+              "select 'a' as a as table1;",
+              "save overwrite table1 as parquet.`/tmp/kk`;"
+            ]
+          }
+        ]
+      }
+    ],
+    "configParams": {
+    }
+  }
+}
+```
 
- 
+## Learning MLSQL
+
+* [MLSQL Grammar](https://github.com/allwefantasy/streamingpro/blob/master/docs/en/mlsql-grammar.md)
+* [Using Build-in Algorithms](https://github.com/allwefantasy/streamingpro/blob/master/docs/en/mlsql-build-in-algorithms.md)
+* [Scala/Python UDF](https://github.com/allwefantasy/streamingpro/blob/master/docs/en/mlsql-script-support.md)
+* [Stream Jobs](https://github.com/allwefantasy/streamingpro/blob/master/docs/en/mlsql-stream.md)
+* [Using Python ML Framework To Train And Predict Within MLSQL](https://github.com/allwefantasy/streamingpro/blob/master/docs/en/mlsql-python-machine-learning.md)
+* [Using Python ML Framework To Batch Predict Within MLSQL](./docs/mlsql-sklearn-batch-prediction.md)
+
+## Compiling
+
+* [How to compile](https://github.com/allwefantasy/streamingpro/blob/master/docs/en/compile.md)
+* [How to compile DSL module](./docs/generate-dsl-java-source.md)
+
+## Advanced Programming
+* [How to implements user defined algorithm in MLSQL](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-user-defined-alg.md)
+
+## Model deploy
+* [How to deploy your predict service](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-model-deploy.md)
+
+
+## MLSQL
+
+* [Datasources](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-datasources.md)
+* [How to use CarbonData as storage](https://github.com/allwefantasy/streamingpro/blob/master/docs/carbondata.md)
+
+* [Preprecessing modules in train statement](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-data-processing-model.md)
+* [Preprecessing functions in select statement](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-functions.md)
+* [How to use text analyzer in MLSQL](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-analysis.md)
+
+* [How to use MLSQL to crawl the web pages](https://github.com/allwefantasy/streamingpro/blob/master/docs/crawler.md)
+* [How to use MLSQL to do batch processing](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-batch.md)
+* [How to use MLSQL to do streaming processing](https://github.com/allwefantasy/streamingpro/blob/master/docs/mlsql-stream.md)
+
+
+
+## Tools
+1. [StreamingPro Manager](https://github.com/allwefantasy/streamingpro/blob/master/docs/manager.md)
+1. [StreamingPro json editor](https://github.com/allwefantasy/streamingpro/blob/master/README.md#StreamingPro-json文件编辑器支持)
+
+## experiment
+1. [flink support](https://github.com/allwefantasy/streamingpro/blob/master/docs/flink.md)
+
+## Other documents
+
+* [简书专栏](https://www.jianshu.com/c/759bc22b9e15)
+* [源码阅读-深入浅出StreamingPro](https://github.com/allwefantasy/streamingpro/issues/47)
+* [为什么开发MLSQL](https://github.com/allwefantasy/streamingpro/blob/master/docs/why-develop-mlsql.md)
+* [SQL服务](https://github.com/allwefantasy/streamingpro/blob/master/docs/sqlservice.md)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
